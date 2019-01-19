@@ -1,0 +1,9 @@
+<header>
+  <h1>
+    <a title="{{ .Site.Title }}" href="/">{{ .Site.Title }}</a>
+  </h1>
+  <!-- responsive-->
+  <input id="bmenub" type="checkbox" class="show">
+  <label for="bmenub" class="burger pseudo button">menu</label>
+  {{ partial "header/nav.html" . }}
+</header>
