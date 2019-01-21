@@ -40,7 +40,8 @@ body {
 
 body > header {
   @extend %nav;
-  h1 {
+  strong {
+    margin:0;
     @extend .brand;
     font-size:1em;
   }
