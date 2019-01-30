@@ -38,7 +38,7 @@ body {
   margin-top: 4.5em;
 }
 
-body > header {
+header#hugoModule-siteHeader {
   @extend %nav;
   strong {
     margin:0;
@@ -62,7 +62,7 @@ body > header {
 
 @import 'nav_responsive';
 
-body > *:not(header) {
+#hugoModule-bodyWrapper > *:not(header) {
   max-width: 960px;
   margin:0 auto 0 auto;
 }
