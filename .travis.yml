@@ -1,13 +1,25 @@
-language: minimal
+dist: xenial
 
-os: osx
+addons:
+  snaps:
+  - name: hugo
+    channel: extended
+
+# NOTE: Turn off depth flag to access other branches.
+git:
+  depth: false
 
 before_install:
+  - git remote set-url origin https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
+  - git config --global user.email "travis@travis-ci.org"
+  - git config --global user.name "Travis CI"
   - git clone https://github.com/hugomodo/hugomodo.git ../hugomodo
-  - chmod +x ../hugomodo/bin/hugo
 
 stages:
   - name: test
+  - name: dummy
+  - name: standalone
+    if: branch = master
   - name: deploy
     if: tag IS present
 
@@ -16,12 +28,23 @@ jobs:
     - stage: test
       script:
         - cd ../hugomodo/exampleSite
-        - ../bin/hugo --themesDir ../../ --theme hugomodo-picnic
+        - theme_name=$(echo "${TRAVIS_REPO_SLUG/[a-zA-Z-_]*?\//}")
+        - hugo --themesDir ../../ --theme $theme_name
+    - stage: standalone
+      script:
+        - git checkout -B standalone
+        - git reset master --hard # NOTE: unnecessary with the -B flag used above
+        - rm -f config.toml
+        - cp -rn ../hugomodo/. . || true # TODO: cp returns non-zero exit code but appears to succeed regardless
+        - git add -A
+        - git commit -m "rebuild from master"
+        - git push -u origin standalone --force
     - stage: deploy
       script:
-        - git remote set-url origin https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git
-        - git config --global user.email "travis@travis-ci.org"
-        - git config --global user.name "Travis CI"
         - release_branch=$(echo ${TRAVIS_TAG} | cut -b 2-)
         - git checkout -b $release_branch
         - git push -u origin $release_branch
+        - git checkout standalone
+        - standalone_release_branch=$(echo ${TRAVIS_TAG} | cut -b 2- | awk '{print $1"-standalone"}')
+        - git checkout -b $standalone_release_branch
+        - git push -u origin $standalone_release_branch
